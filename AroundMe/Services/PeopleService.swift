@@ -7,7 +7,7 @@
 
 import Foundation
 @MainActor
-class PeopleService {
+final class PeopleService {
     private var people: [Person] = []
     private var timer: Timer?
     
@@ -38,7 +38,6 @@ class PeopleService {
                     continuation.yield(self.people)
                 }
             }
-            
             RunLoop.main.add(self.timer!, forMode: .common)
             
             continuation.onTermination = { _ in
