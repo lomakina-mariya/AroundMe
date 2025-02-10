@@ -20,29 +20,37 @@ struct PeopleListView: View {
     var body: some View {
         NavigationView {
             VStack {
-                if let pinnedPerson = viewModel.pinnedPerson {
-                    Section {
-                        pinnedPersonView(person: pinnedPerson)
+                if viewModel.isLoading {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .padding()
+                } else {
+                    VStack {
+                        if let pinnedPerson = viewModel.pinnedPerson {
+                            Section {
+                                pinnedPersonView(person: pinnedPerson)
+                            }
+                            .background(Color.white)
+                            .shadow(radius: 3)
+                        }
+                        
+                        List {
+                            ForEach(viewModel.people.filter { $0.id != viewModel.pinnedPerson?.id }) { person in
+                                personRow(person: person)
+                                    .listRowSeparator(.hidden)
+                            }
+                        }
+                        .listStyle(PlainListStyle())
                     }
-                    .background(Color.white)
-                    .shadow(radius: 3)
+                    .navigationTitle("Список людей")
                 }
-        
-                List {
-                    ForEach(viewModel.people.filter { $0.id != viewModel.pinnedPerson?.id }) { person in
-                        personRow(person: person)
-                            .listRowSeparator(.hidden)
-                    }
-                }
-                .listStyle(PlainListStyle())
             }
-            .navigationTitle("Список людей")
-        }
-        .onAppear {
-            viewModel.loadPeople()
-        }
-        .onDisappear {
-            viewModel.stopUpdatingPositions()
+            .onAppear {
+                viewModel.loadPeople()
+            }
+            .onDisappear {
+                viewModel.stopUpdatingPositions()
+            }
         }
     }
     
@@ -69,7 +77,7 @@ struct PeopleListView: View {
                 } else {
                     Text("Нет данных о расстоянии")
                         .font(.subheadline)
-                        .foregroundColor(.red)
+                        .foregroundColor(.gray)
                 }
             }
             Spacer()

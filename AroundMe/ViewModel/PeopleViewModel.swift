@@ -12,6 +12,7 @@ import CoreLocation
 class PeopleViewModel: ObservableObject {
     @Published private(set) var people: [Person] = []
     @Published var pinnedPerson: Person?
+    @Published var isLoading: Bool = true
     private let locationManager: LocationManager
     private let peopleService: PeopleService
     private var updateTask: Task<Void, Never>?
@@ -24,13 +25,16 @@ class PeopleViewModel: ObservableObject {
     }
 
     func loadPeople() {
+        isLoading = true
         Task {
             do {
                 let fetchedPeople = try await peopleService.fetchPeople()
                 self.people = fetchedPeople
+                self.isLoading = false
                 self.startUpdatingPositions()
             } catch {
                 print("Ошибка загрузки данных: \(error)")
+                self.isLoading = false
             }
         }
     }
