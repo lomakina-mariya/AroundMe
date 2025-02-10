@@ -16,28 +16,25 @@ struct PeopleListView: View {
         _viewModel = StateObject(wrappedValue: PeopleViewModel(locationManager: locationManager, peopleService: peopleService))
     }
     
+    
     var body: some View {
         NavigationView {
-            List(viewModel.people) { person in
-                VStack(alignment: .leading) {
-                    HStack {
-                        avatarView(url: person.avatarURL)
-                        VStack(alignment: .leading) {
-                            Text(person.name)
-                                .font(.headline)
-                            if let distance = person.distance {
-                                Text("Расстояние: \(String(format: "%.0f", distance)) км")
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            } else {
-                                Text("Нет данных о расстоянии")
-                                    .font(.subheadline)
-                                    .foregroundColor(.red)
-                            }
-                        }
-                        Spacer()
+            VStack {
+                if let pinnedPerson = viewModel.pinnedPerson {
+                    Section {
+                        pinnedPersonView(person: pinnedPerson)
+                    }
+                    .background(Color.white)
+                    .shadow(radius: 3)
+                }
+        
+                List {
+                    ForEach(viewModel.people.filter { $0.id != viewModel.pinnedPerson?.id }) { person in
+                        personRow(person: person)
+                            .listRowSeparator(.hidden)
                     }
                 }
+                .listStyle(PlainListStyle())
             }
             .navigationTitle("Список людей")
         }
@@ -47,6 +44,45 @@ struct PeopleListView: View {
         .onDisappear {
             viewModel.stopUpdatingPositions()
         }
+    }
+    
+    func pinnedPersonView(person: Person) -> some View {
+        VStack {
+            personRow(person: person)
+                .background(Color.white)
+                .cornerRadius(10)
+                .padding()
+        }
+        .frame(maxWidth: .infinity)
+    }
+    
+    func personRow(person: Person) -> some View {
+        HStack {
+            avatarView(url: person.avatarURL)
+            VStack(alignment: .leading) {
+                Text(person.name)
+                    .font(.headline)
+                if let distance = person.distance {
+                    Text("Расстояние: \(String(format: "%.0f", distance)) км")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                } else {
+                    Text("Нет данных о расстоянии")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                }
+            }
+            Spacer()
+            Button(action: { viewModel.togglePinPerson(person: person) }) {
+                Image(systemName: viewModel.pinnedPerson?.id == person.id ? "pin.fill" : "pin")
+                    .foregroundColor(viewModel.pinnedPerson?.id == person.id ? .blue : .gray)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 4)
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 2)
     }
     
     func avatarView(url: String) -> some View {

@@ -11,9 +11,11 @@ import CoreLocation
 @MainActor
 class PeopleViewModel: ObservableObject {
     @Published private(set) var people: [Person] = []
+    @Published var pinnedPerson: Person?
     private let locationManager: LocationManager
     private let peopleService: PeopleService
     private var updateTask: Task<Void, Never>?
+    
 
     init(locationManager: LocationManager, peopleService: PeopleService) {
         self.locationManager = locationManager
@@ -47,10 +49,27 @@ class PeopleViewModel: ObservableObject {
     }
 
     func updateDistances() {
-        guard let userLocation = locationManager.userLocation else { return }
-        for i in 0..<people.count {
-            let distanceToUser = userLocation.distance(from: people[i].clLocation) / 1000
-            people[i].distance = distanceToUser
+        guard let baseLocation = pinnedPerson?.clLocation ?? locationManager.userLocation else { return }
+        people = people.map { person in
+            var updatedPerson = person
+            if person.id == pinnedPerson?.id {
+                updatedPerson.distance = (locationManager.userLocation?.distance(from: person.clLocation)).map { $0 / 1000 }
+            } else {
+                updatedPerson.distance = baseLocation.distance(from: person.clLocation) / 1000
+            }
+            
+            return updatedPerson
         }
+        
+        people.sort { $0.distance ?? Double.greatestFiniteMagnitude < $1.distance ?? Double.greatestFiniteMagnitude }
+    }
+    
+    func togglePinPerson(person: Person) {
+        if pinnedPerson?.id == person.id {
+            pinnedPerson = nil
+        } else {
+            pinnedPerson = person
+        }
+        updateDistances()
     }
 }
