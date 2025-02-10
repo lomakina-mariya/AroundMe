@@ -1,0 +1,33 @@
+
+[
+    {
+        "id": 1,
+        "name": "Anna",
+        "avatarURL": "https://illustrators.ru/uploads/illustration/image/1381587/2.jpg",
+        "location": { "latitude": 55.7558, "longitude": 37.6173 }
+    },
+    {
+        "id": 2,
+        "name": "Sam",
+        "avatarURL": "https://illustrators.ru/uploads/illustration/image/1381589/6.jpg",
+        "location": { "latitude": 59.9343, "longitude": 30.3351 }
+    },
+    {
+        "id": 3,
+        "name": "Alex",
+        "avatarURL": "https://illustrators.ru/uploads/illustration/image/1381592/7.jpg",
+        "location": { "latitude": 48.8584, "longitude": 2.2945 }
+    },
+    {
+        "id": 4,
+        "name": "Maiya",
+        "avatarURL": "https://illustrators.ru/uploads/illustration/image/1381581/4.jpg",
+        "location": { "latitude": 59.934280, "longitude": 30.306360}
+    },
+    {
+        "id": 5,
+        "name": "Pavel",
+        "avatarURL": "https://cs13.pikabu.ru/post_img/2024/05/27/6/171680131214434081.jpg",
+        "location": { "latitude": 59.934003, "longitude": 30.324667 }
+    }
+]
