@@ -8,8 +8,14 @@
 import SwiftUI
 
 struct PeopleListView: View {
-    @StateObject private var viewModel = PeopleViewModel(locationManager: LocationManager())
-
+    @StateObject private var viewModel: PeopleViewModel
+    
+    init() {
+        let locationManager = LocationManager()
+        let peopleService = PeopleService()
+        _viewModel = StateObject(wrappedValue: PeopleViewModel(locationManager: locationManager, peopleService: peopleService))
+    }
+    
     var body: some View {
         NavigationView {
             List(viewModel.people) { person in
@@ -19,8 +25,8 @@ struct PeopleListView: View {
                         VStack(alignment: .leading) {
                             Text(person.name)
                                 .font(.headline)
-                            if let distance = viewModel.distance(to: person) {
-                                Text("Расстояние: \(distance) км")
+                            if let distance = person.distance {
+                                Text("Расстояние: \(String(format: "%.0f", distance)) км")
                                     .font(.subheadline)
                                     .foregroundColor(.gray)
                             } else {
@@ -32,11 +38,14 @@ struct PeopleListView: View {
                         Spacer()
                     }
                 }
-                .navigationTitle("Список людей")
-                .onAppear {
-                    viewModel.loadPeople()
-                }
             }
+            .navigationTitle("Список людей")
+        }
+        .onAppear {
+            viewModel.loadPeople()
+        }
+        .onDisappear {
+            viewModel.stopUpdatingPositions()
         }
     }
     
@@ -53,7 +62,7 @@ struct PeopleListView: View {
                 image
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 50, height: 50)
+                    .frame(width: 60, height: 60)
                     .clipShape(Circle())
             case .failure:
                 Image(systemName: "person.circle.fill")
@@ -65,7 +74,6 @@ struct PeopleListView: View {
                 EmptyView()
             }
         }
-        
     }
 }
 
