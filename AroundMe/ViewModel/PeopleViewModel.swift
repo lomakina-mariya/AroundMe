@@ -7,43 +7,50 @@
 
 import Foundation
 import CoreLocation
-import Combine
 
 @MainActor
 class PeopleViewModel: ObservableObject {
     @Published private(set) var people: [Person] = []
-    @Published private(set) var userLocation: CLLocation?
-
-    private let peopleService = PeopleService()
     private let locationManager: LocationManager
-    private var cancellables = Set<AnyCancellable>()
+    private let peopleService: PeopleService
+    private var updateTask: Task<Void, Never>?
 
-    init(locationManager: LocationManager) {
+    init(locationManager: LocationManager, peopleService: PeopleService) {
         self.locationManager = locationManager
-        observeLocationUpdates()
-        loadPeople()
-    }
-
-    private func observeLocationUpdates() {
-        locationManager.$userLocation
-            .assign(to: &$userLocation)
+        self.peopleService = peopleService
+        self.loadPeople()
     }
 
     func loadPeople() {
-        peopleService.fetchPeople { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .success(let fetchedPeople):
+        Task {
+            do {
+                let fetchedPeople = try await peopleService.fetchPeople()
                 self.people = fetchedPeople
-            case .failure(let error):
+                self.startUpdatingPositions()
+            } catch {
                 print("Ошибка загрузки данных: \(error)")
             }
         }
     }
 
-    func distance(to person: Person) -> String? {
-        guard let userLocation = userLocation else { return nil }
-        let kms = userLocation.distance(from: person.clLocation) / 1000
-        return String(format: "%.0f", kms)
+    func startUpdatingPositions() {
+        updateTask = Task {
+            for await updatedPeople in peopleService.startUpdatingPositions() {
+                self.people = updatedPeople
+                self.updateDistances()
+            }
+        }
+    }
+
+    func stopUpdatingPositions() {
+        updateTask?.cancel()
+    }
+
+    func updateDistances() {
+        guard let userLocation = locationManager.userLocation else { return }
+        for i in 0..<people.count {
+            let distanceToUser = userLocation.distance(from: people[i].clLocation) / 1000
+            people[i].distance = distanceToUser
+        }
     }
 }

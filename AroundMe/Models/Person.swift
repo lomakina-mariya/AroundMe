@@ -12,10 +12,11 @@ struct Person: Codable, Identifiable {
     let id: Int
     let name: String
     let avatarURL: String
-    let location: Location
+    var location: Location
     var clLocation: CLLocation {
         CLLocation(latitude: location.latitude, longitude: location.longitude)
     }
+    var distance: Double?
 }
 
 struct Location: Codable {
